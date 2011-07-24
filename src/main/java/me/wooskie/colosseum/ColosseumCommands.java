@@ -124,7 +124,15 @@ public class ColosseumCommands {
 		// Store player inventory and armor in HashMap:
 		plugin.initialInvItemStack.put(player, player.getInventory().getContents());
 		plugin.initialArmItemStack.put(player, player.getInventory().getArmorContents());
-		
+                
+//                ItemStack[] items = plugin.initialInvItemStack.get(player);
+//                plugin.log.info("Len: " + items.length);
+//                for (int i = 0; i < items.length; i++)
+//                {
+//                    if (items[i] != null)
+//                        plugin.log.info("Item: " + items[i].getType().toString());
+//                }
+                
 		// Clear player inventory and armor:
 		player.getInventory().clear();
 		player.getInventory().setHelmet(null);
@@ -154,10 +162,11 @@ public class ColosseumCommands {
 	@SuppressWarnings("deprecation")
 	public void ToStandardInventory(Player player) {
 		// Halts method if player not on roster:
-		if (!plugin.roster.containsKey(player)) {
+                
+                if (!plugin.roster.containsKey(player)) {
 			return;
 		}
-		
+                
 		// Set player health to full
 		player.setHealth(20);
 		

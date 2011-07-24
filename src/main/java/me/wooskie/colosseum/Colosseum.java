@@ -1,6 +1,7 @@
 package me.wooskie.colosseum;
 
 import java.util.HashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
@@ -12,12 +13,22 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class Colosseum extends JavaPlugin{
+import com.nijiko.permissions.PermissionHandler;
+import com.nijikokun.bukkit.Permissions.Permissions;
 
-	// Sets logger for outputting to minecraft server console
+public class Colosseum extends JavaPlugin{
+    // Permissions handler.
+    static PermissionHandler perm;
+
+    // Easy references for plugin name and version.
+    private String pluginName = "";
+    private String pluginVers = "";
+
+        // Sets logger for outputting to minecraft server console
 	Logger log = Logger.getLogger("Minecraft");
 	
 	// Defines plugin classes:
@@ -57,9 +68,11 @@ public class Colosseum extends JavaPlugin{
 	// Permissions needs to be implemented.
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args){
 		if (commandLabel.equalsIgnoreCase("pvp")) {
-			Player player = (Player) sender;
+                    Player player = (Player) sender;
+                    if (this.perm.has(player, "colosseum.admin")) {
 			if (args.length < 2) {
-				return false;
+                            player.sendMessage("Syntax: /pvp <param>");
+			    return false;
 			}
 			if (args[0].equalsIgnoreCase("set")) {
 				if (args.length > 2) {
@@ -88,7 +101,10 @@ public class Colosseum extends JavaPlugin{
 					colosseumData.SaveGates();
 					player.sendMessage("Gates cleared.");
 					return true;
-			}
+			} else
+                            player.sendMessage("Invalid operation!");
+                    } else
+                        player.sendMessage("You do not have access to this command.");
 		}
 		return false;
 	}
@@ -96,7 +112,9 @@ public class Colosseum extends JavaPlugin{
 	// Runs when plugin is loaded. Nothing interesting, just initialization.
 	public void onEnable() {
 		
-		eListener = new ColosseumEntityListener( this );
+            this.pluginName = this.getDescription().getName();
+            this.pluginVers = this.getDescription().getVersion();
+                eListener = new ColosseumEntityListener( this );
 		pListener = new ColosseumPlayerListener( this );
 		colosseumCommands = new ColosseumCommands( this );
 		colosseumData = new ColosseumData( this );
@@ -104,7 +122,7 @@ public class Colosseum extends JavaPlugin{
 		
 		colosseumCommands.UpdateTeamSigns();
 		
-		log.info("Colosseum 0.1 enabled.");
+		log.info(this.pluginName + " v" + this.pluginVers + " enabled.");
 		PluginManager pm = getServer().getPluginManager();	
 		pm.registerEvent(Event.Type.ENTITY_DEATH, eListener, Priority.Normal, this);
 		pm.registerEvent(Event.Type.ENTITY_DAMAGE, eListener, Priority.Normal, this);
@@ -115,8 +133,21 @@ public class Colosseum extends JavaPlugin{
 	
 	// Runs when plugin is disabled.
 	public void onDisable() {
-		log.info("Colosseum 0.1 disabled.");
+		log.info(this.pluginName + " v" + this.pluginVers + " disabled.");
 	}
 	
+    // Initial Permissions loading and setup.
+    private void setupPermissions()
+    {
+      Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
+
+      if (this.perm == null) {
+          if (permissionsPlugin != null) {
+              this.perm = ((Permissions) permissionsPlugin).getHandler();
+          } else {
+              this.log.log(Level.SEVERE, "Permission system not detected.");
+          }
+      }
+    }
 	
 }
